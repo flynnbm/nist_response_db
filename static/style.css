@@ -1,0 +1,133 @@
+html, body {
+  margin: 0;
+  height: 100%;
+  font-family: Arial, sans-serif;
+}
+
+body {
+  overflow: hidden;
+}
+
+.topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+  border-bottom: 1px solid #ddd;
+  background: white;
+  height: 72px;
+  box-sizing: border-box;
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  height: calc(100vh - 72px);
+}
+
+aside {
+  border-right: 1px solid #ddd;
+  padding: 16px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  box-sizing: border-box;
+}
+
+main {
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+#status {
+  padding: 12px 16px 0 16px;
+  flex: 0 0 auto;
+}
+
+#results {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  overflow-x: auto;
+  padding: 16px;
+  box-sizing: border-box;
+  min-width: 0;
+}
+
+.filter-group {
+  margin-bottom: 14px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  background: #fff;
+}
+
+.filter-summary {
+  cursor: pointer;
+  padding: 10px 12px;
+  font-weight: 600;
+  user-select: none;
+  list-style: none;
+}
+
+.filter-summary::-webkit-details-marker {
+  display: none;
+}
+
+.filter-summary::before {
+  content: "▸";
+  display: inline-block;
+  margin-right: 8px;
+  transition: transform 0.15s ease;
+}
+
+.filter-group[open] .filter-summary::before {
+  transform: rotate(90deg);
+}
+
+.filter-content {
+  padding: 0 12px 12px 12px;
+}
+
+.filter-group h3 {
+  margin: 0 0 10px 0;
+  font-size: 14px;
+}
+
+.check {
+  display: block;
+  margin-bottom: 6px;
+}
+
+.slider-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.slider-values {
+  font-size: 13px;
+  color: #333;
+}
+
+.range-slider {
+  width: 100%;
+}
+
+table {
+  border-collapse: collapse;
+  min-width: max-content;
+}
+
+th, td {
+  border: 1px solid #ddd;
+  padding: 8px;
+  vertical-align: top;
+  white-space: nowrap;
+}
+
+th {
+  background: #f6f6f6;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
