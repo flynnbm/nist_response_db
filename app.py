@@ -1,6 +1,7 @@
 from flask import Flask, jsonify, render_template, request
 from sqlalchemy import inspect, text
 from db import engine
+from ui_config import TABLE_CONFIG
 
 app = Flask(__name__)
 
@@ -30,6 +31,21 @@ def home():
 @app.get("/api/tables")
 def api_tables():
     return jsonify(tables=list_tables())
+
+# --- NEW: serve UI config for a given table ---
+@app.get("/api/ui_config")
+def api_ui_config():
+    table = request.args.get("table", "").strip()
+    if not table:
+        return jsonify(error="table is required"), 400
+
+    config = TABLE_CONFIG.get(table, {})
+
+    return jsonify(
+        table=table,
+        card_fields=config.get("card_fields", []),
+        modal_groups=config.get("modal_groups", []),
+    )
 
 @app.get("/api/filter_options")
 def api_filter_options():
@@ -105,11 +121,9 @@ def api_query():
     where_parts = []
     params = {}
 
-    searchable_cols = [c for c in show_cols]
-
     if search:
         search_parts = []
-        for i, col in enumerate(searchable_cols):
+        for i, col in enumerate(show_cols):
             key = f"search_{i}"
             search_parts.append(f"CAST({qident(col)} AS TEXT) ILIKE :{key}")
             params[key] = f"%{search}%"

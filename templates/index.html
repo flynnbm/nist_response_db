@@ -1,29 +1,72 @@
 <!doctype html>
-<html>
+<html lang="en">
 <head>
   <meta charset="utf-8">
   <title>Database Browser</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
-  <div class="topbar">
-    <div class="left">
-      <label>Table
-        <select id="tableSelect"></select>
-      </label>
+
+  <!-- Top bar -->
+  <header class="topbar">
+    <div class="topbar-brand">
+      <span class="brand-dot"></span>
+      <span class="brand-name">NIST Response Database Browser</span>
     </div>
-    <div class="right">
-      <input id="searchInput" type="text" placeholder="Search...">
-      <button id="searchBtn">Search</button>
+    <div class="topbar-search">
+      <svg class="search-icon" width="16" height="16" viewBox="0 0 16 16" fill="none">
+        <circle cx="6.5" cy="6.5" r="4.5" stroke="currentColor" stroke-width="1.5"/>
+        <path d="M10 10L14 14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+      </svg>
+      <input id="searchInput" type="text" placeholder="Search all fields…" autocomplete="off">
     </div>
-  </div>
+    <div id="status" class="topbar-status"></div>
+  </header>
 
   <div class="layout">
-    <aside id="sidebar"></aside>
-    <main>
-      <div id="status"></div>
-      <div id="results"></div>
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-section">
+        <p class="sidebar-label">TABLE</p>
+        <select id="tableSelect" class="table-select"></select>
+      </div>
+
+      <div class="sidebar-section">
+        <p class="sidebar-label">SORT BY</p>
+        <select id="sortSelect" class="table-select">
+          <option value="">— none —</option>
+        </select>
+        <select id="sortDir" class="table-select" style="margin-top:6px">
+          <option value="asc">Ascending</option>
+          <option value="desc">Descending</option>
+        </select>
+      </div>
+
+      <div class="sidebar-divider"></div>
+
+      <div class="sidebar-section">
+        <p class="sidebar-label">FILTERS</p>
+        <div id="sidebar-filters"></div>
+      </div>
+    </aside>
+
+    <!-- Main content -->
+    <main class="main">
+      <div id="results" class="tile-grid"></div>
     </main>
+
+  </div>
+
+  <!-- Modal overlay -->
+  <div id="modal-overlay" class="modal-overlay hidden" onclick="closeModal(event)">
+    <div class="modal-card">
+      <button class="modal-close" onclick="document.getElementById('modal-overlay').classList.add('hidden')">✕</button>
+      <div id="modal-content"></div>
+    </div>
   </div>
 
   <script src="/static/app.js"></script>

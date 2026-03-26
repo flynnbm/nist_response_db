@@ -349,7 +349,9 @@ def import_csv_file(engine: Engine, csv_path: Path) -> None:
     for col, typ in column_types.items():
         print(f"    - {col}: {typ}")
 
+    print("Creating table...")
     create_table_for_dataframe(engine, table_name, typed_df, column_types)
+    print("Inserting dataframe...")
     insert_dataframe(engine, table_name, typed_df)
 
     print(f"  Imported {len(typed_df)} rows into '{table_name}'.")
@@ -382,8 +384,12 @@ def main() -> None:
     if not csv_files:
         print(f"No CSV files found at: {target}")
         sys.exit(1)
+    else:
+        print(f"Found {len(csv_files)} csv files...")
 
     engine = create_engine(DATABASE_URL, future=True)
+    print("Engine created... ")
+    
 
     print(f"Using database: {DATABASE_URL}")
     print(f"Found {len(csv_files)} CSV file(s).")
