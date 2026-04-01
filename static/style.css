@@ -497,3 +497,82 @@ html, body {
   gap: 7px 16px;
   align-items: baseline;
 }
+
+/* ── Table view ───────────────────────────────────────────── */
+.table-wrap {
+  width: 100%;
+  max-width: none;
+  grid-column: 1 / -1;
+  display: block;
+  overflow-x: auto;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+}
+
+.results-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 1000px;
+}
+
+.results-table thead th {
+  position: sticky;
+  top: 0;
+  background: #f7f6f3;
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  text-align: left;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+
+.results-table tbody td {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border);
+  font-size: 13px;
+  color: var(--text-secondary);
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+.results-table tbody tr {
+  background: var(--bg-card);
+  cursor: pointer;
+}
+
+.results-table tbody tr:hover {
+  background: var(--bg-card-hover);
+}
+
+.results-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.table-image-cell {
+  width: 72px;
+  min-width: 72px;
+}
+
+.table-thumb {
+  width: 48px;
+  height: 48px;
+  object-fit: contain;
+  display: block;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: #f8f7f4;
+}
+
+.table-empty {
+  color: var(--text-muted);
+}
+
+.table-empty-message {
+  text-align: center;
+  color: var(--text-muted);
+  padding: 24px;
+}

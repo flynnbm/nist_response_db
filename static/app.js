@@ -6,6 +6,8 @@ const sidebarFilters = document.getElementById("sidebar-filters");
 const statusEl       = document.getElementById("status");
 const resultsEl      = document.getElementById("results");
 
+const VIEW_MODE = "table"; // "table" or "grid"
+
 let currentFilters = [];
 let currentColumns = [];
 let uiConfig = { card_fields: [], modal_groups: [] };
@@ -165,6 +167,98 @@ function gatherRanges() {
   return result;
 }
 
+function getTableColumns(rows, columns) {
+  if (!rows.length) {
+    return columns.filter(c => c !== "image_url" && c !== "full_image_url");
+  }
+
+  const out = [];
+  const hasImage = rows.some(row => row.image_url);
+
+  if (hasImage) out.push("image_url");
+
+  for (const col of columns) {
+    if (col === "image_url" || col === "full_image_url") continue;
+    out.push(col);
+  }
+
+  return out;
+}
+
+function buildTableCell(row, col) {
+  if (col === "image_url") {
+    if (!row.image_url) return `<td class="table-image-cell"></td>`;
+    return `
+      <td class="table-image-cell">
+        <img
+          class="table-thumb"
+          src="${escHtml(String(row.image_url))}"
+          alt="thumbnail"
+          loading="lazy"
+        />
+      </td>
+    `;
+  }
+
+  const value = row[col];
+
+  if (isBlank(value)) {
+    return `<td class="table-empty">—</td>`;
+  }
+
+  return `<td title="${escHtml(String(value))}">${escHtml(String(value))}</td>`;
+}
+
+function renderTable(rows, columns) {
+  resultsEl.classList.remove("tile-grid");
+  resultsEl.style.display = "block";
+
+  const tableCols = getTableColumns(columns);
+
+  if (!rows.length) {
+    resultsEl.innerHTML = `
+      <div class="table-wrap">
+        <table class="results-table">
+          <thead>
+            <tr>
+              ${tableCols.map(col => `<th>${escHtml(col === "image_url" ? "image" : col)}</th>`).join("")}
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td colspan="${tableCols.length}" class="table-empty-message">No results found.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    `;
+    return;
+  }
+
+  resultsEl.innerHTML = `
+    <div class="table-wrap">
+      <table class="results-table">
+        <thead>
+          <tr>
+            ${tableCols.map(col => `<th>${escHtml(col === "image_url" ? "image" : col)}</th>`).join("")}
+          </tr>
+        </thead>
+        <tbody>
+          ${rows.map((row, rowIndex) => `
+            <tr class="result-row" data-row-index="${rowIndex}">
+              ${tableCols.map(col => buildTableCell(row, col)).join("")}
+            </tr>
+          `).join("")}
+        </tbody>
+      </table>
+    </div>
+  `;
+
+  resultsEl.querySelectorAll(".result-row").forEach((el, i) => {
+    el.addEventListener("click", () => openModal(rows[i]));
+  });
+}
+
 // ── Query ─────────────────────────────────────────────────────
 async function runQuery() {
   const payload = {
@@ -195,7 +289,13 @@ async function runQuery() {
 
   let rows = data.rows || [];
   rows = sortRows(rows);
-  renderTiles(rows);
+
+  if (VIEW_MODE === "table") {
+    renderTable(rows, currentColumns);
+  } else {
+    renderTiles(rows);
+  }
+
   setStatus(`${rows.length} result${rows.length !== 1 ? "s" : ""}`);
 }
 
@@ -233,10 +333,13 @@ function isBlank(v) {
   return s === "" || s === "na" || s === "n/a" || s === "null" || s === "none";
 }
 
-function escHtml(str) {
-  return String(str)
-    .replace(/&/g, "&amp;").replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+function escHtml(s) {
+  return String(s)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
 }
 
 // ── Tile rendering ────────────────────────────────────────────
@@ -257,6 +360,7 @@ function getCardFields(row) {
 }
 
 function renderTiles(rows) {
+  resultsEl.classList.add("tile-grid");
   if (!rows.length) {
     resultsEl.innerHTML = `<div class="state-msg">No results found.</div>`;
     return;
@@ -313,6 +417,96 @@ function buildTileHTML(row, index) {
       <div class="tile-fields">${fieldsHTML}</div>
       ${footerHTML}
     </div>`;
+}
+
+// ── Table rendering ───────────────────────────────────────────
+function getTableColumns(columns) {
+  const out = [];
+
+  // Put thumbnail first if you want it shown
+  out.push("image_url");
+
+  for (const col of columns) {
+    if (col === "image_url" || col === "full_image_url") continue;
+    out.push(col);
+  }
+
+  return out;
+}
+
+function renderTable(rows, columns) {
+  const tableCols = getTableColumns(columns);
+
+  if (!rows.length) {
+    resultsEl.innerHTML = `
+      <div class="table-wrap">
+        <table class="results-table">
+          <thead>
+            <tr>
+              ${tableCols.map(col => `<th>${escHtml(col === "image_url" ? "image" : col)}</th>`).join("")}
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td colspan="${tableCols.length}" class="table-empty-message">No results found.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    `;
+    return;
+  }
+
+  resultsEl.innerHTML = `
+    <div class="table-wrap">
+      <table class="results-table">
+        <thead>
+          <tr>
+            ${tableCols.map(col => `<th>${escHtml(col === "image_url" ? "image" : col)}</th>`).join("")}
+          </tr>
+        </thead>
+        <tbody>
+          ${rows.map((row, rowIndex) => `
+            <tr class="result-row" data-row-index="${rowIndex}">
+              ${tableCols.map(col => buildTableCell(row, col)).join("")}
+            </tr>
+          `).join("")}
+        </tbody>
+      </table>
+    </div>
+  `;
+
+  resultsEl.querySelectorAll(".result-row").forEach((el, i) => {
+    el.addEventListener("click", () => openModal(rows[i]));
+  });
+}
+
+
+function buildTableCell(row, col) {
+  if (col === "image_url") {
+    if (!row.image_url) {
+      return `<td class="table-image-cell">—</td>`;
+    }
+
+    return `
+      <td class="table-image-cell">
+        <img
+          class="table-thumb"
+          src="${escHtml(String(row.image_url))}"
+          alt="thumbnail"
+          loading="lazy"
+        />
+      </td>
+    `;
+  }
+
+  const value = row[col];
+
+  if (isBlank(value)) {
+    return `<td class="table-empty">—</td>`;
+  }
+
+  return `<td>${escHtml(String(value))}</td>`;
 }
 
 // ── Modal rendering ───────────────────────────────────────────
