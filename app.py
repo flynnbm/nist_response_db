@@ -1,4 +1,4 @@
-from flask import Flask, jsonify, render_template, request
+from flask import Flask, jsonify, render_template, request, Response
 from sqlalchemy import inspect, text
 from db import engine
 from ui_config import TABLE_CONFIG
@@ -18,7 +18,15 @@ def is_effectively_na(v) -> bool:
 
 def list_tables():
     inspector = inspect(engine)
-    return sorted(inspector.get_table_names(schema="public"))
+    tables = inspector.get_table_names(schema="public")
+
+    HIDDEN_TABLES = {
+        "robot_embodiment",
+        "robot_manifest",
+        "robot_images",
+    }
+
+    return sorted([t for t in tables if t not in HIDDEN_TABLES])
 
 def get_columns(table: str):
     inspector = inspect(engine)
@@ -164,6 +172,52 @@ def api_query():
 
     rows = [dict(r) for r in rows]
     trimmed_rows = [{c: r.get(c, "") for c in show_cols} for r in rows]
+    
+    # Add images for any table that has robot_id
+    if "robot_id" in show_cols:
+
+        robot_ids = [
+            row.get("robot_id")
+            for row in trimmed_rows
+            if row.get("robot_id") is not None and str(row.get("robot_id")).strip() != ""
+        ]
+
+        image_map = {}
+
+        if robot_ids:
+            placeholders = ", ".join([f":rid_{i}" for i in range(len(robot_ids))])
+            params_img = {f"rid_{i}": rid for i, rid in enumerate(robot_ids)}
+
+            sql_img = text(f"""
+                SELECT robot_id, thumbnail_file, image_file
+                FROM robot_images
+                WHERE robot_id IN ({placeholders})
+            """)
+
+            with engine.connect() as conn:
+                img_rows = conn.execute(sql_img, params_img).mappings().all()
+
+            image_map = {
+                row["robot_id"]: {
+                    "thumbnail_file": row["thumbnail_file"],
+                    "image_file": row["image_file"],
+                }
+                for row in img_rows
+            }
+
+        for row in trimmed_rows:
+            robot_id = row.get("robot_id")
+            img = image_map.get(robot_id)
+
+            if img and img.get("thumbnail_file"):
+                row["image_url"] = f"/static/robot_thumbnails/{img['thumbnail_file']}"
+            else:
+                row["image_url"] = None
+
+            if img and img.get("image_file"):
+                row["full_image_url"] = f"/static/robot_images/{img['image_file']}"
+            else:
+                row["full_image_url"] = None
 
     return jsonify(columns=show_cols, rows=trimmed_rows)
 
