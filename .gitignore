@@ -1,2 +1,6 @@
 csv/*
 !csv/.gitkeep
+!csv/Robot Embodiment.csv
+!csv/Robot Manifest.csv
+__pycache__/
+*.pyc
